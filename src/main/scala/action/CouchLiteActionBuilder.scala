@@ -19,7 +19,10 @@ import io.gatling.core.util.NameGen
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
+import java.time.{LocalDate, ZoneId}
+import java.time.temporal.ChronoUnit.DAYS
+import java.util.Date
+import scala.util.Random
 
 class CouchLiteActionBuilder(attr: SqlAttributes) extends ActionBuilder with NameGen {
   private def components(protocolComponentsRegistry: ProtocolComponentsRegistry) =
@@ -34,8 +37,12 @@ class CouchLiteActionBuilder(attr: SqlAttributes) extends ActionBuilder with Nam
 }
 
 class CouchLiteAction(val attr: SqlAttributes, protocol: CouchLiteProtocol, val throttled: Boolean, val coreComponents: CoreComponents, val nextAction: Action) extends ExitableAction {
-
-
+  val defaultZoneId: ZoneId = ZoneId.systemDefault
+  def randomDate(from: LocalDate, to: LocalDate): LocalDate = {
+    val diff = DAYS.between(from, to)
+    val random = new Random(System.nanoTime) // You may want a different seed
+    from.plusDays(random.nextInt(diff.toInt))
+  }
   override protected def execute(session: Session): Unit = {
     val (newSession, psExpr: Validation[String]) = attr.statement(session, protocol)
 
@@ -56,8 +63,18 @@ class CouchLiteAction(val attr: SqlAttributes, protocol: CouchLiteProtocol, val 
 
     def executeStatement(stmt: String, newSession: Session) = {
       val start = System.currentTimeMillis()
+
+      //logger.debug("Type of counter "+  session.attributes("counter").getClass)
+
+      val docId = s"${session.userId}-${session.attributes("counter")}"
+      //logger.debug(s"docId is : $docId")
       val future = Future {
-        protocol.database.getCollection("myCol").save(new MutableDocument().setJSON(stmt))
+
+        val date = Date.from(randomDate( LocalDate.of(1970, 1, 1), LocalDate.of(2021, 1, 1)).atStartOfDay(defaultZoneId).toInstant)
+        protocol.database.getCollection("myCol").save(new MutableDocument(docId).setJSON(stmt)
+          .setDate("datefield",date)
+          .setLong("sequence",Random.nextLong(Long.MaxValue))
+         )
       }
 
       future onComplete {

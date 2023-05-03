@@ -16,7 +16,7 @@ class SimpleSqlStatement(statement: Expression[String]) extends SqlStatement {
   override def apply(session: Session, sqlProtocol: CouchLiteProtocol): (Session, Validation[String]) = {
     statement(session) match {
       case Success(stmt) =>
-        logger.debug(s"STMT: $stmt")
+        //logger.debug(s"STMT: $stmt")
         (session, Success(stmt))
       case Failure(t) => (session, Failure(t))
     }
