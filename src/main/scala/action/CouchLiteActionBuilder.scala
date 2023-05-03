@@ -21,6 +21,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import java.time.{LocalDate, ZoneId}
 import java.time.temporal.ChronoUnit.DAYS
+import java.util
 import java.util.Date
 import scala.util.Random
 
@@ -44,7 +45,7 @@ class CouchLiteAction(val attr: SqlAttributes, protocol: CouchLiteProtocol, val 
     from.plusDays(random.nextInt(diff.toInt))
   }
   override protected def execute(session: Session): Unit = {
-    val (newSession, psExpr: Validation[String]) = attr.statement(session, protocol)
+    val (newSession, psExpr: Validation[util.HashMap[String,Object]]) = attr.statement(session, protocol)
 
     psExpr match {
       case Success(stmt) =>
@@ -61,7 +62,7 @@ class CouchLiteAction(val attr: SqlAttributes, protocol: CouchLiteProtocol, val 
     }
 
 
-    def executeStatement(stmt: String, newSession: Session) = {
+    def executeStatement(stmt: util.HashMap[String,Object], newSession: Session) = {
       val start = System.currentTimeMillis()
 
       //logger.debug("Type of counter "+  session.attributes("counter").getClass)
@@ -71,7 +72,7 @@ class CouchLiteAction(val attr: SqlAttributes, protocol: CouchLiteProtocol, val 
       val future = Future {
 
         val date = Date.from(randomDate( LocalDate.of(1970, 1, 1), LocalDate.of(2021, 1, 1)).atStartOfDay(defaultZoneId).toInstant)
-        protocol.database.getCollection("myCol").save(new MutableDocument(docId).setJSON(stmt)
+        protocol.database.getCollection("myCol").save(new MutableDocument(docId,stmt)
           .setDate("datefield",date)
           .setLong("sequence",Random.nextLong(Long.MaxValue))
          )

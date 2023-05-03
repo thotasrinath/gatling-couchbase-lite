@@ -11,6 +11,7 @@ lazy val root = (project in file("."))
     idePackagePrefix := Some("io.github.gatling.couchbase"),
     libraryDependencies ++= gatling ++ gatlingCore,
     libraryDependencies ++= coucbaseLite,
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.0",
     scalacOptions ++= Seq(
       "-encoding",
       "UTF-8", // Option and arguments on same line

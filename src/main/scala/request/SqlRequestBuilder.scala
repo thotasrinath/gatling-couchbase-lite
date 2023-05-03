@@ -7,14 +7,16 @@ import io.gatling.core.action.builder.ActionBuilder
 import io.gatling.core.protocol.Protocols
 import io.gatling.core.session.Expression
 
+import java.util
+
 
 case class SqlRequestBuilderBase(tag: String) {
 
-  def insertQuery(query: Expression[String]) : SqlRequestBuilder =
+  def insertQuery(query: Expression[util.HashMap[String,Object]]) : SqlRequestBuilder =
     SqlRequestBuilder(SqlAttributes(tag, new SimpleSqlStatement(query)))
 
-  def update(query: Expression[String], protocols : Protocols) : SqlRequestBuilder =
-    SqlRequestBuilder(SqlAttributes(tag, new SimpleSqlStatement(query)))
+/*  def update(query: Expression[String], protocols : Protocols) : SqlRequestBuilder =
+    SqlRequestBuilder(SqlAttributes(tag, new SimpleSqlStatement(query)))*/
 }
 
 case class SqlAttributes(tag: String, statement: SqlStatement)
