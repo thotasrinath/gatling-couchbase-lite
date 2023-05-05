@@ -16,7 +16,7 @@ class SimpleScenarioTest extends Simulation {
   //val data = new ObjectMapper().readValue(new File("src/main/resources/scratch-25.json"), classOf[util.HashMap[String, Object]])
   val conn = new Database("mydb")
   //val coll = conn.getCollection("myCol")
-  val query = QueryBuilder.createQuery("select * from myCol where META().id= $pk",conn)
+  val query = "select * from myCol where meta.firstLevelSequence between $lower and $higher limit 20"
 
   var dataRef: Option[Database] = None
 
@@ -37,9 +37,9 @@ class SimpleScenarioTest extends Simulation {
 
   def scn =
     scenario("test").asLongAsDuring(session => true, 10.minutes, "counter", false) {
-      exec(sql("csd").searchQuery(SqlStatementRequest("select", obj = query)))
+      exec(sql("csd").searchQuery(SqlStatementRequest("select", stmt = query)))
     }
 
-  setUp(scn.inject(atOnceUsers(100)))
+  setUp(scn.inject(atOnceUsers(30)))
     .protocols(getDb())
 }

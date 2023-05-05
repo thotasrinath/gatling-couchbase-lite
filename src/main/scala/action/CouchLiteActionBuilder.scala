@@ -4,7 +4,7 @@ package action
 import protocol.CouchLiteProtocol
 import request.SqlAttributes
 
-import com.couchbase.lite.{MutableDictionary, MutableDocument, Parameters, Query}
+import com.couchbase.lite.{MutableDictionary, MutableDocument, Parameters, Query, QueryBuilder}
 import io.gatling.commons.stats.{KO, OK}
 import io.gatling.commons.util.Clock
 import io.gatling.commons.validation.{Failure, Success, Validation}
@@ -97,12 +97,14 @@ class CouchLiteAction(val attr: SqlAttributes, protocol: CouchLiteProtocol, val 
         }
 
         if(stmt.stmtType equals "select"){
-          val query = stmt.obj.asInstanceOf[Query]
-          query.setParameters(new Parameters().setString("pk", Random.nextInt(199999).toString))
+          val lower = Random.nextInt(Int.MaxValue)
+          val higher = Random.between(lower,Int.MaxValue)
+          val query = QueryBuilder.createQuery(stmt.stmt,protocol.database)
+          query.setParameters(new Parameters().setInt("lower",lower).setInt("higher",higher))
+
           val rs = query.execute()
-          val res = rs.next()
-          if(res.count() != 1)
-            println("Error")
+          if(rs.next() == null)
+            println(s"No records for $lower and $higher")
 
         }
       }
