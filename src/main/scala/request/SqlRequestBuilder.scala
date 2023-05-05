@@ -4,19 +4,16 @@ package request
 import action.CouchLiteActionBuilder
 
 import io.gatling.core.action.builder.ActionBuilder
-import io.gatling.core.protocol.Protocols
 import io.gatling.core.session.Expression
-
-import java.util
 
 
 case class SqlRequestBuilderBase(tag: String) {
 
-  def insertQuery(query: Expression[util.HashMap[String,Object]]) : SqlRequestBuilder =
+  def insertQuery(query: Expression[SqlStatementRequest]) : SqlRequestBuilder =
     SqlRequestBuilder(SqlAttributes(tag, new SimpleSqlStatement(query)))
 
-/*  def update(query: Expression[String], protocols : Protocols) : SqlRequestBuilder =
-    SqlRequestBuilder(SqlAttributes(tag, new SimpleSqlStatement(query)))*/
+  def searchQuery(query: Expression[SqlStatementRequest]) : SqlRequestBuilder =
+    SqlRequestBuilder(SqlAttributes(tag, new SimpleSqlStatement(query)))
 }
 
 case class SqlAttributes(tag: String, statement: SqlStatement)

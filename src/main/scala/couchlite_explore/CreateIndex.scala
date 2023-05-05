@@ -1,7 +1,7 @@
 package io.github.gatling.couchbase
 package couchlite_explore
 
-import com.couchbase.lite.{CouchbaseLite, Database, ValueIndexConfiguration}
+import com.couchbase.lite.{CouchbaseLite, Database, QueryBuilder, ValueIndexConfiguration}
 
 object CreateIndex {
 
@@ -15,9 +15,12 @@ object CreateIndex {
     val coll = database.createCollection("myCol")
 
     coll.createIndex("dateFieldIndex", new ValueIndexConfiguration("datefield"))
-    coll.createIndex("sequenceIndex", new ValueIndexConfiguration("sequence"))
+    coll.createIndex("firstLevelSequence", new ValueIndexConfiguration("meta.firstLevelSequence"))
+    coll.createIndex("secondLevelSequence", new ValueIndexConfiguration("trade.party.secondLevelSequence"))
+
 
     database.close()
+
   }
 
 }

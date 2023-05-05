@@ -13,14 +13,14 @@ import scala.concurrent.duration.DurationInt
 
 class SimpleScenarioTest extends Simulation {
 
-  val data = new ObjectMapper().readValue(new File("src/main/resources/scratch-100.json"),classOf[util.HashMap[String,Object]])
+  val data = new ObjectMapper().readValue(new File("src/main/resources/scratch-25.json"),classOf[util.HashMap[String,Object]])
 
   CouchbaseLite.init()
 
   var dataRef:Option[Database] = None
   def getDb(): CouchLiteProtocolBuilder = {
-    val conn = new Database("mydb")
-    //conn.createCollection("myCol")
+    val conn = new Database("mydb11")
+    conn.createCollection("myCol")
 
     dataRef = Some(conn)
     sql.connection(conn)
@@ -35,10 +35,10 @@ class SimpleScenarioTest extends Simulation {
   }
 
   def scn =
-    scenario("test").asLongAsDuring(session => true, 5.minutes, "counter", false) {
-      exec(sql("csd").insertQuery(data))
+    scenario("test").repeat(2000) {
+      exec(sql("csd").insertQuery(SqlStatementRequest("insert",obj = data)))
     }
 
-  setUp(scn.inject(atOnceUsers(10)))
+  setUp(scn.inject(atOnceUsers(100)))
     .protocols(getDb())
 }
