@@ -4,7 +4,7 @@ package action
 import protocol.CouchLiteProtocol
 import request.SqlAttributes
 
-import com.couchbase.lite.{MutableDictionary, MutableDocument}
+import com.couchbase.lite.{MutableDictionary, MutableDocument, Parameters, Query}
 import io.gatling.commons.stats.{KO, OK}
 import io.gatling.commons.util.Clock
 import io.gatling.commons.validation.{Failure, Success, Validation}
@@ -73,27 +73,38 @@ class CouchLiteAction(val attr: SqlAttributes, protocol: CouchLiteProtocol, val 
       //logger.debug(s"docId is : $docId")
       val future = Future {
 
-        val date = Date.from(randomDate(LocalDate.of(1970, 1, 1), LocalDate.of(2021, 1, 1)).atStartOfDay(defaultZoneId).toInstant)
+        if (stmt.stmtType equals "insert"){
+          val date = Date.from(randomDate(LocalDate.of(1970, 1, 1), LocalDate.of(2021, 1, 1)).atStartOfDay(defaultZoneId).toInstant)
 
-        val docId = PrivateCounter.getCount().toString
+          val docId = PrivateCounter.getCount().toString
 
-        val mutableDocument = new MutableDocument(docId, stmt.obj.asInstanceOf[util.HashMap[String,Object]])
-          .setDate("datefield", date)
-          .setLong("sequence", Random.nextLong(Long.MaxValue))
-          .setString("id",docId)
+          val mutableDocument = new MutableDocument(docId, stmt.obj.asInstanceOf[util.HashMap[String, Object]])
+            .setDate("datefield", date)
+            .setLong("sequence", Random.nextLong(Long.MaxValue))
+            .setString("id", docId)
 
-        mutableDocument.getDictionary("meta")
-          .setInt("firstLevelSequence", Random.nextInt(Int.MaxValue))
+          mutableDocument.getDictionary("meta")
+            .setInt("firstLevelSequence", Random.nextInt(Int.MaxValue))
 
-        mutableDocument.getDictionary("trade").getArray("party").forEach {
-          case d: MutableDictionary => {
-            d.setInt("secondLevelSequence", Random.nextInt(Int.MaxValue))
+          mutableDocument.getDictionary("trade").getArray("party").forEach {
+            case d: MutableDictionary => {
+              d.setInt("secondLevelSequence", Random.nextInt(Int.MaxValue))
+            }
+            case c: Any => println("Not type of Mutable cou" + c.getClass)
           }
-          case c:Any => println("Not type of Mutable cou" + c.getClass)
+
+          protocol.database.getCollection("myCol").save(mutableDocument)
         }
 
-        protocol.database.getCollection("myCol").save(mutableDocument)
+        if(stmt.stmtType equals "select"){
+          val query = stmt.obj.asInstanceOf[Query]
+          query.setParameters(new Parameters().setString("pk", Random.nextInt(199999).toString))
+          val rs = query.execute()
+          val res = rs.next()
+          if(res.count() != 1)
+            println("Error")
 
+        }
       }
 
       future onComplete {
