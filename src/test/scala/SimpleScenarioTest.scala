@@ -16,7 +16,7 @@ class SimpleScenarioTest extends Simulation {
   //val data = new ObjectMapper().readValue(new File("src/main/resources/scratch-25.json"), classOf[util.HashMap[String, Object]])
   val conn = new Database("mydb")
   //val coll = conn.getCollection("myCol")
-  val query = "select * from myCol where meta.firstLevelSequence between $lower and $higher limit 20"
+  val query = "select * from myCol where any v in trade.party satisfies v.secondLevelSequence between $lower and $higher end limit 20"
 
   var dataRef: Option[Database] = None
 
